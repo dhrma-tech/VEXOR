@@ -17,8 +17,23 @@ const PERSONALITIES = [
     { id: 'poet', name: 'Poet', system: 'You are a Code Poet. Write elegant, readable code and explain it using metaphors and rhymes where appropriate.' },
 ];
 
-// Initialize Gemini API
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+/* --- API INITIALIZATION HELPER --- */
+// We wrap this to allow dynamic key setting for hosted demos
+let ai: GoogleGenAI | null = null;
+
+const getAI = () => {
+    if (ai) return ai;
+    // Check environment or local storage
+    const key = process.env.API_KEY || localStorage.getItem('vexor_api_key');
+    if (key) {
+        try {
+            ai = new GoogleGenAI({ apiKey: key });
+        } catch (e) {
+            console.error("Invalid API Key initialization");
+        }
+    }
+    return ai;
+};
 
 /* --- TYPES --- */
 type Message = {
@@ -97,7 +112,8 @@ const Icon = ({ name, className = "w-5 h-5" }: { name: string, className?: strin
         arrowRight: <path d="M14 5l7 7m0 0l-7 7m7-7H3" />,
         swords: <path d="M14.5 17.5L3 6V3h3l11.5 11.5m-5 0L21 21v-3l-2.5-2.5m-9-9L6 3H3v3l3.5 3.5" />, 
         playCircle: <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />,
-        clock: <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        clock: <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />,
+        key: <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11.5 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
     };
 
     return (
@@ -107,7 +123,52 @@ const Icon = ({ name, className = "w-5 h-5" }: { name: string, className?: strin
     );
 };
 
-/* --- SUB-COMPONENTS --- */
+/* --- COMPONENTS --- */
+
+const ApiKeyModal = ({ isOpen, onSave }: { isOpen: boolean, onSave: (key: string) => void }) => {
+    const [key, setKey] = useState('');
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-sm">
+            <div className="bg-[#1e1e1e] border border-[#333] p-8 rounded-2xl w-[500px] shadow-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500">
+                        <Icon name="key" className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Enter Gemini API Key</h2>
+                </div>
+                <p className="text-gray-400 mb-6 text-sm leading-relaxed">
+                    To use Vexor.AI, you need a Google Gemini API Key. Your key is stored locally in your browser and never sent to our servers.
+                </p>
+                <input 
+                    type="password" 
+                    value={key}
+                    onChange={(e) => setKey(e.target.value)}
+                    placeholder="Paste your API Key here (starts with AIza...)"
+                    className="w-full bg-[#131314] border border-[#333] p-4 rounded-lg text-white focus:outline-none focus:border-blue-500 font-mono text-sm mb-6"
+                />
+                <div className="flex justify-end gap-4">
+                    <a 
+                        href="https://aistudio.google.com/app/apikey" 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="px-4 py-3 text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center"
+                    >
+                        Get a Key &rarr;
+                    </a>
+                    <button 
+                        onClick={() => onSave(key)} 
+                        disabled={!key}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-colors"
+                    >
+                        Save & Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const FileTreeNode = ({ name, content }: { name: string, content: any }) => {
     const [isOpen, setIsOpen] = useState(true);
@@ -417,6 +478,12 @@ const SparringView = ({ data, onUpdate }: { data: ProjectData['sparring'], onUpd
 
     const handleAction = async (action: 'refactor' | 'review' | 'test' | 'explain') => {
         setLoading(true);
+        const ai = getAI();
+        if (!ai) {
+            setOutput("Error: API Key missing. Please reload to enter key.");
+            setLoading(false);
+            return;
+        }
         try {
             let prompt = "";
             const persona = personality.system;
@@ -543,6 +610,12 @@ const ArchitectView = ({ data, onUpdate }: { data: ProjectData['architect'], onU
     const generateArchitecture = async () => {
         if (!input.trim()) return;
         setLoading(true);
+        const ai = getAI();
+        if (!ai) {
+            alert("API Key missing.");
+            setLoading(false);
+            return;
+        }
         try {
             const prompt = `You are a Senior Software Architect.
             Based on the user's idea: "${input}", generate a comprehensive architecture.
@@ -661,6 +734,13 @@ const StudioView = ({ data, onUpdate }: { data: ProjectData['studio'], onUpdate:
         setMessages(newMsgs);
         setInput('');
         setLoading(true);
+        
+        const ai = getAI();
+        if (!ai) {
+            setMessages([...newMsgs, { role: 'model', text: 'API Key Missing. Please reload.', error: true }]);
+            setLoading(false);
+            return;
+        }
 
         try {
             const chat = ai.chats.create({
@@ -1033,7 +1113,27 @@ const LandingPage = ({ onLaunch }: { onLaunch: () => void }) => {
 
 const App = () => {
     const [screen, setScreen] = useState<'landing' | 'dashboard'>('landing');
-    return screen === 'landing' ? <LandingPage onLaunch={() => setScreen('dashboard')} /> : <Dashboard onBack={() => setScreen('landing')} />;
+    const [apiKey, setApiKey] = useState<string>(() => process.env.API_KEY || localStorage.getItem('vexor_api_key') || '');
+    const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (!apiKey) setIsKeyModalOpen(true);
+    }, [apiKey]);
+
+    const handleSaveKey = (key: string) => {
+        localStorage.setItem('vexor_api_key', key);
+        setApiKey(key);
+        setIsKeyModalOpen(false);
+        // Force reload to initialize AI with new key
+        window.location.reload();
+    };
+
+    return (
+        <>
+            <ApiKeyModal isOpen={isKeyModalOpen} onSave={handleSaveKey} />
+            {screen === 'landing' ? <LandingPage onLaunch={() => setScreen('dashboard')} /> : <Dashboard onBack={() => setScreen('landing')} />}
+        </>
+    );
 };
 
 const root = createRoot(document.getElementById('root')!);
