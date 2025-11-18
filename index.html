@@ -17,6 +17,9 @@
     <!-- Monaco Editor Loader -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 
+    <!-- Babel for browser-side JSX transpilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -34,6 +37,13 @@
                 },
             },
         }
+
+        // HOSTING FIX: Polyfill process.env for the browser
+        window.process = {
+            env: {
+                API_KEY: "" // Will be populated by user input if empty
+            }
+        };
     </script>
 
     <!-- STYLES -->
@@ -68,21 +78,23 @@
             border-radius: 2px;
         }
     </style>
-<script type="importmap">
+
+    <script type="importmap">
 {
   "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://esm.run/@google/genai",
+    "react": "https://esm.run/react@18.2.0",
+    "react-dom/client": "https://esm.run/react-dom@18.2.0/client",
+    "@monaco-editor/react": "https://esm.run/@monaco-editor/react",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
-    "@monaco-editor/react": "https://aistudiocdn.com/@monaco-editor/react@^4.7.0"
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
   }
 }
 </script>
 </head>
 <body>
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
+    <!-- Load the TSX file using Babel -->
+    <script type="text/babel" data-type="module" src="./index.tsx"></script>
 </body>
 </html>
