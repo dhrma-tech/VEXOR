@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import Editor, { useMonaco } from "@monaco-editor/react";
 
 /* --- CONFIGURATION & CONSTANTS --- */
@@ -75,7 +75,7 @@ const DEFAULT_PROJECT_DATA: ProjectData = {
 
 /* --- ICONS --- */
 const Icon = ({ name, className = "w-5 h-5" }: { name: string, className?: string }) => {
-    const icons: any = {
+    const icons: Record<string, React.ReactNode> = {
         home: <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />,
         plus: <path d="M12 4v16m8-8H4" />,
         chat: <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />,
@@ -547,7 +547,7 @@ const ArchitectView = ({ data, onUpdate }: { data: ProjectData['architect'], onU
             const prompt = `You are a Senior Software Architect.
             Based on the user's idea: "${input}", generate a comprehensive architecture.
             
-            Return strictly a JSON object with this structure (no markdown):
+            Return strictly a JSON object with this structure:
             {
                 "projectName": "Name",
                 "tagline": "Short description",
@@ -563,8 +563,11 @@ const ArchitectView = ({ data, onUpdate }: { data: ProjectData['architect'], onU
             const res = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: prompt,
+                config: {
+                    responseMimeType: 'application/json'
+                }
             });
-            const text = res.text?.replace(/```json/g, '').replace(/```/g, '').trim();
+            const text = res.text || '';
             if(text) setResult(JSON.parse(text));
         } catch (e) {
             console.error(e);
