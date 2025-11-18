@@ -36,30 +36,22 @@
                 },
             },
         }
-        
-        // HOSTING FIX: Polyfill process.env for the browser so the code doesn't crash
+
+        // HOSTING FIX: Polyfill process.env for the browser
         window.process = {
             env: {
-                // Leave empty. The app will ask the user for the key if this is missing.
-                API_KEY: "" 
+                API_KEY: "" // User will be prompted
             }
         };
     </script>
 
     <!-- STYLES -->
     <style>
-        body {
-            background-color: #131314;
-            color: #e3e3e3;
-        }
-
-        /* Custom Scrollbar - Studio Style */
+        body { background-color: #131314; color: #e3e3e3; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
-
-        /* Range Slider Styling */
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
             background: #3b82f6; cursor: pointer; margin-top: -6px; box-shadow: 0 0 0 2px #1e1e1e;
@@ -70,20 +62,19 @@
     </style>
 
     <script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://esm.run/@google/genai",
-    "react": "https://esm.run/react@18.2.0",
-    "react-dom/client": "https://esm.run/react-dom@18.2.0/client",
-    "@monaco-editor/react": "https://esm.run/@monaco-editor/react",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/"
-  }
-}
-</script>
+    {
+      "imports": {
+        "@google/genai": "https://esm.run/@google/genai",
+        "react": "https://esm.run/react@18.2.0",
+        "react-dom/client": "https://esm.run/react-dom@18.2.0/client",
+        "@monaco-editor/react": "https://esm.run/@monaco-editor/react"
+      }
+    }
+    </script>
 </head>
 <body>
     <div id="root"></div>
+    
     <!-- Load the TSX file using Babel -->
     <script type="text/babel" data-type="module" src="./index.tsx"></script>
 </body>
