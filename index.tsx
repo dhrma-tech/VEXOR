@@ -795,12 +795,19 @@ const Dashboard = ({ onBack }: { onBack: () => void }) => {
     useEffect(() => {
         const saved = localStorage.getItem('vexor_projects');
         if (saved) {
-            const parsed = JSON.parse(saved);
-            setProjects(parsed);
-            // Default to most recently modified
-            if (parsed.length > 0) {
-                const mostRecent = parsed.sort((a: Project, b: Project) => b.lastModified - a.lastModified)[0];
-                setCurrentProjectId(mostRecent.id);
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    setProjects(parsed);
+                    // Default to most recently modified
+                    if (parsed.length > 0) {
+                        const mostRecent = parsed.sort((a: Project, b: Project) => b.lastModified - a.lastModified)[0];
+                        setCurrentProjectId(mostRecent.id);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to parse projects", e);
+                localStorage.removeItem('vexor_projects');
             }
         }
     }, []);
