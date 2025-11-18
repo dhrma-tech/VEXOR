@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "latest",
     "react": "^19.2.0",
     "@monaco-editor/react": "latest",
+    "@google/genai": "latest",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {

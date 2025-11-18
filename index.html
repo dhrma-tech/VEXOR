@@ -1,100 +1,87 @@
-
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vexor.AI - Code Sparring Partner</title>
+    <title>Vexor.AI | Intelligent Development Studio</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-
-    <!-- Monaco Editor Loader -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
-
-    <!-- Babel for browser-side JSX transpilation -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Google Sans', 'Roboto', 'sans-serif'],
-                        mono: ['Roboto Mono', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        'studio-bg': '#131314',
-                        'studio-panel': '#1e1e1e',
-                        'studio-border': '#333',
+                        background: '#050505',
+                        surface: '#121212',
+                        border: '#2a2a2a',
+                        primary: '#3b82f6',
                     }
                 },
             },
         }
-
-        // HOSTING FIX: Polyfill process.env for the browser
-        window.process = {
-            env: {
-                API_KEY: "" // Will be populated by user input if empty
-            }
-        };
+        // Polyfill for process.env to prevent crashes in some libs
+        window.process = { env: { NODE_ENV: 'production' } };
     </script>
 
-    <!-- STYLES -->
-    <style>
-        body {
-            background-color: #131314;
-            color: #e3e3e3;
-        }
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-        /* Custom Scrollbar - Studio Style */
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 
-        /* Range Slider Styling */
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #3b82f6;
-            cursor: pointer;
-            margin-top: -6px;
-            box-shadow: 0 0 0 2px #1e1e1e;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #444;
-            border-radius: 2px;
-        }
-    </style>
-
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Import Map: CLEANED - Only React 18 -->
     <script type="importmap">
 {
   "imports": {
-    "@google/genai": "https://esm.run/@google/genai",
     "react": "https://esm.run/react@18.2.0",
     "react-dom/client": "https://esm.run/react-dom@18.2.0/client",
     "@monaco-editor/react": "https://esm.run/@monaco-editor/react",
+    "@google/genai": "https://esm.run/@google/genai",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/"
   }
 }
 </script>
+
+    <style>
+        body { background-color: #050505; color: #e5e5e5; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        #root:empty::before {
+            content: "Loading Vexor...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            font-family: sans-serif;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
-    <!-- Load the TSX file using Babel -->
+    <!-- Load the Application Logic -->
     <script type="text/babel" data-type="module" src="./index.tsx"></script>
 </body>
 </html>
