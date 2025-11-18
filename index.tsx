@@ -17,16 +17,8 @@ const PERSONALITIES = [
     { id: 'poet', name: 'Poet', system: 'You are a Code Poet. Write elegant, readable code and explain it using metaphors and rhymes where appropriate.' },
 ];
 
-// Initialize Gemini API Safe Wrapper
-let ai: GoogleGenAI;
-try {
-    const key = process.env.API_KEY || localStorage.getItem('vexor_api_key');
-    if (key) {
-        ai = new GoogleGenAI({ apiKey: key });
-    }
-} catch (e) {
-    console.log("API Key not found initially");
-}
+// Initialize Gemini API
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /* --- TYPES --- */
 type Message = {
@@ -98,7 +90,7 @@ const Icon = ({ name, className = "w-5 h-5" }: { name: string, className?: strin
         mic: <path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />,
         copy: <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />,
         architect: <path d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />,
-        eye: <><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></>,
+        eye: <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />,
         file: <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
         folder: <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />,
         zap: <path d="M13 10V3L4 14h7v7l9-11h-7z" />,
@@ -405,7 +397,6 @@ const SparringView = ({ data, onUpdate }: { data: ProjectData['sparring'], onUpd
     const [output, setOutput] = useState(data.output);
     const [loading, setLoading] = useState(false);
     const [personality, setPersonality] = useState(PERSONALITIES.find(p => p.id === data.personalityId) || PERSONALITIES[0]);
-    const [apiKeyMissing, setApiKeyMissing] = useState(!ai);
 
     // Sync local state when props change (e.g. project switch)
     useEffect(() => {
@@ -425,17 +416,6 @@ const SparringView = ({ data, onUpdate }: { data: ProjectData['sparring'], onUpd
     }, [code, output, personality, onUpdate, data]);
 
     const handleAction = async (action: 'refactor' | 'review' | 'test' | 'explain') => {
-        if (!ai) {
-             const key = prompt("Please enter your Google Gemini API Key to use Vexor:");
-             if (key) {
-                 localStorage.setItem('vexor_api_key', key);
-                 ai = new GoogleGenAI({ apiKey: key });
-                 setApiKeyMissing(false);
-             } else {
-                 return;
-             }
-        }
-
         setLoading(true);
         try {
             let prompt = "";
@@ -562,17 +542,6 @@ const ArchitectView = ({ data, onUpdate }: { data: ProjectData['architect'], onU
 
     const generateArchitecture = async () => {
         if (!input.trim()) return;
-        
-        if (!ai) {
-             const key = prompt("Please enter your Google Gemini API Key to use Vexor:");
-             if (key) {
-                 localStorage.setItem('vexor_api_key', key);
-                 ai = new GoogleGenAI({ apiKey: key });
-             } else {
-                 return;
-             }
-        }
-
         setLoading(true);
         try {
             const prompt = `You are a Senior Software Architect.
@@ -687,17 +656,6 @@ const StudioView = ({ data, onUpdate }: { data: ProjectData['studio'], onUpdate:
 
     const handleRun = async () => {
         if (!input.trim() && messages.length === 0) return;
-        
-        if (!ai) {
-             const key = prompt("Please enter your Google Gemini API Key to use Vexor:");
-             if (key) {
-                 localStorage.setItem('vexor_api_key', key);
-                 ai = new GoogleGenAI({ apiKey: key });
-             } else {
-                 return;
-             }
-        }
-
         const newMsgs = [...messages];
         if (input) newMsgs.push({ role: 'user', text: input });
         setMessages(newMsgs);
@@ -795,19 +753,12 @@ const Dashboard = ({ onBack }: { onBack: () => void }) => {
     useEffect(() => {
         const saved = localStorage.getItem('vexor_projects');
         if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) {
-                    setProjects(parsed);
-                    // Default to most recently modified
-                    if (parsed.length > 0) {
-                        const mostRecent = parsed.sort((a: Project, b: Project) => b.lastModified - a.lastModified)[0];
-                        setCurrentProjectId(mostRecent.id);
-                    }
-                }
-            } catch (e) {
-                console.error("Failed to parse projects", e);
-                localStorage.removeItem('vexor_projects');
+            const parsed = JSON.parse(saved);
+            setProjects(parsed);
+            // Default to most recently modified
+            if (parsed.length > 0) {
+                const mostRecent = parsed.sort((a: Project, b: Project) => b.lastModified - a.lastModified)[0];
+                setCurrentProjectId(mostRecent.id);
             }
         }
     }, []);
