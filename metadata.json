@@ -1,5 +1,5 @@
 {
-  "name": "Vexor.AI: AI Code Sparring Partner",
-  "description": "An AI-powered web application that acts as a code sparring partner. It helps developers generate tests, refactor code, get explanations, and generate analysis endpoints using the Gemini API.",
+  "name": "Vexor.AI",
+  "description": "The intelligent code sparring partner and AI development studio. Includes Code Sparring, Prompt Studio, and System Architect tools.",
   "requestFramePermissions": []
 }
